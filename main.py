@@ -4,15 +4,12 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-
 app = FastAPI()
-
 
 DATABASE_URL = (
     "postgresql+psycopg://postgres:nagul"
     "@localhost:5432/laptop_store;"
 )
-
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
@@ -22,8 +19,6 @@ SessionLocal = sessionmaker(
 )
 
 Base = declarative_base()
-
-
 class ProductDB(Base):
     __tablename__ = "products"
 
@@ -31,7 +26,6 @@ class ProductDB(Base):
     name = Column(String, nullable=False)
     price = Column(Float, nullable=False)
     quantity = Column(Integer, nullable=False)
-
 
 class ProductCreate(BaseModel):
     name: str
@@ -41,10 +35,7 @@ class ProductCreate(BaseModel):
 class ProductResponse(ProductCreate):
     id: int
     model_config = ConfigDict(from_attributes=True)
-
-
 Base.metadata.create_all(bind=engine)
-
 
 def get_db():
     db = SessionLocal()
@@ -69,10 +60,8 @@ def add_product(
     db.add(new_product)
     db.commit()
     db.refresh(new_product)
-
     return new_product
 
-# 9. Get all laptops
 @app.get("/products", response_model=list[ProductResponse])
 def get_products(db: Session = Depends(get_db)):
     return db.query(ProductDB).all()
@@ -86,7 +75,6 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
-
     return product
 
 
@@ -109,7 +97,6 @@ def update_product(
 
     db.commit()
     db.refresh(product)
-
     return product
 
 
@@ -118,11 +105,9 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(ProductDB).filter(
         ProductDB.id == product_id
     ).first()
-
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
     db.delete(product)
     db.commit()
-
     return {"message": "Product deleted successfully"}
